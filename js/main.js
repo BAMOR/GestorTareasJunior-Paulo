@@ -89,3 +89,54 @@ function showCustomAlert(message, type = 'info', duration = 3000) {
         }, duration);
     }
 }
+
+const addUserForm = document.getElementById('addUserForm');
+if (addUserForm) {
+    addUserForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        if (!AuthManager.isAdmin()) {
+            showCustomAlert(" No tienes permisos para crear usuarios", "error");
+            return;
+        }
+        
+        const userName = document.getElementById('newUserName').value.trim();
+        const password = document.getElementById('newUserPassword').value.trim();
+        const rol = document.getElementById('newUserRole').value;
+        
+        if (!userName || !password) {
+            showCustomAlert(" Por favor, completa todos los campos", "error");
+            return;
+        }
+        
+        if (userName.length < 3) {
+            showCustomAlert(" El nombre de usuario debe tener al menos 3 caracteres", "error");
+            return;
+        }
+        
+        if (password.length < 4) {
+            showCustomAlert(" La contraseña debe tener al menos 4 caracteres", "error");
+            return;
+        }
+        
+        const newUser = {
+            userName: userName,
+            password: password,
+            rol: rol
+        };
+        
+        const success = DBManager.addUser(newUser);
+        
+        if (success) {
+            showCustomAlert(` Usuario "${userName}" creado exitosamente`, "success");
+            document.getElementById('newUserName').value = '';
+            document.getElementById('newUserPassword').value = '';
+            
+            if (typeof UIManager.renderUsersList === 'function') {
+                UIManager.renderUsersList();
+            }
+        } else {
+            showCustomAlert(` El usuario "${userName}" ya existe`, "error");
+        }
+    });
+}

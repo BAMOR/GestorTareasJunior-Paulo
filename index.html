@@ -45,6 +45,25 @@
                 <button type="submit">Agregar Tarea</button>
             </form>
 
+            
+            <div id="adminUserSection" style="display: none;">
+                <hr>
+                <h3> Gestión de Usuarios (Solo Administrador)</h3>
+                <form id="addUserForm">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="newUserName" placeholder="Nombre de usuario" required style="flex: 1;">
+                        <input type="password" id="newUserPassword" placeholder="Contraseña" required style="flex: 1;">
+                        <select id="newUserRole" style="padding: 8px;">
+                            <option value="usuarioNormal"> Usuario Normal</option>
+                            <option value="administrador"> Administrador</option>
+                        </select>
+                        <button type="submit" style="padding: 8px 16px;"> Agregar Usuario</button>
+                    </div>
+                </form>
+                <div id="usersList" style="margin-top: 15px;"></div>
+                <hr>
+            </div>
+
             <div id="tasksListContainer">
                 <h3>Mis Tareas</h3>
                 <div id="tasksList"></div>

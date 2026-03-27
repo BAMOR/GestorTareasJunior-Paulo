@@ -20,6 +20,19 @@
         document.getElementById('mainSection').style.display = 'block';
 
         renderTasks();
+
+        const adminSection = document.getElementById('adminUserSection');
+
+        if(adminSection){
+            if (global.AuthManager.isAdmin()){
+                adminSection.style.display = 'block';
+                renderUsersList();
+            }else{
+                adminSection.style.display = 'none';
+            }
+        }
+        
+        
     }
 
     function renderTasks() {
@@ -96,6 +109,57 @@
             tasksContainer.appendChild(taskElement);
         });
     }
+
+        function renderUsersList() {
+        const usersListDiv = document.getElementById('usersList');
+        if (!usersListDiv) return;
+        
+        const users = global.DBManager.getUsers();
+        const currentUser = global.AuthManager.getCurrentUser();
+        
+        usersListDiv.innerHTML = '<h4>Usuarios Registrados</h4>';
+        
+        users.forEach(user => {
+            const userElement = document.createElement('div');
+            userElement.className = 'user-item';
+            userElement.style.cssText = 'display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #ddd;';
+            
+            userElement.innerHTML = `
+                <span>
+                    <strong>${user.userName}</strong> 
+                    (${user.rol === 'administrador' ? ' Admin' : ' Usuario'})
+                </span>
+                ${user.id !== currentUser.id ? `<button class="btn-delete-user" data-user-id="${user.id}" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer;">🗑️ Eliminar</button>` : '<span style="color: gray;">(Tú)</span>'}
+            `;
+            
+            const deleteBtn = userElement.querySelector('.btn-delete-user');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => {
+                    const userId = parseInt(deleteBtn.getAttribute('data-user-id'));
+                    deleteUserById(userId);
+                });
+            }
+            
+            usersListDiv.appendChild(userElement);
+        });
+    }
+
+        function deleteUserById(userId) {
+        showCustomConfirmAlert(
+            "¿Estás seguro de eliminar este usuario? Se borrarán TODAS sus tareas.",
+            function() {
+                const result = global.DBManager.deleteUser(userId);
+                if (result) {
+                    renderUsersList();
+                    renderTasks();
+                    showCustomAlert(" Usuario eliminado correctamente", "success");
+                } else {
+                    showCustomAlert(" No se pudo eliminar el usuario", "error");
+                }
+            }
+        );
+    }
+
 
     function toggleTaskStatus(taskId) {
         const tasks = global.DBManager.getTasks();
@@ -193,6 +257,7 @@
         showLoginSection,
         showMainSection,
         renderTasks,
+        renderUsersList,
         toggleTaskStatus,
         deleteTask,
         clearNewTaskForm,

@@ -57,6 +57,20 @@
         return true;
     }
 
+    function deleteUser(userId){
+        const db = readDatabase();
+
+        const userExist = db.usuarios.some(u=> u.id === userId);
+        if(!userExist) return false;
+
+        db.usuarios = db.usuarios.filter(u=> u.id !== userId);
+
+        db.tareas = db.tareas.filter(t=> t.idUsuario !== userId);
+
+        writeDatabase(db);
+        return true;
+    }
+
     function getTasks() {
         const db = readDatabase();
         return db.tareas;
@@ -108,6 +122,7 @@
         getUsers,
         getUserByUsername,
         addUser,
+        deleteUser,
         getTasks,
         getTasksByUserId,
         addTask, 
