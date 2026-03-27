@@ -1,45 +1,71 @@
+/**
+ * MÓDULO DE INTERFAZ DE USUARIO (dom.js)
+ * 
+ * Maneja toda la interacción con el DOM (pantalla).
+ * Controla qué se muestra, cómo se ven las tareas y las acciones del usuario.
+ */
+
 (function (global) {
+
+    // ============================================
+    // NAVEGACIÓN ENTRE SECCIONES
+    // ============================================
+
+    /** Muestra la pantalla de login y oculta la pantalla principal */
     function showLoginSection() {
         document.getElementById('loginSection').style.display = 'block';
         document.getElementById('mainSection').style.display = 'none';
     }
 
+    /**
+     * Muestra la pantalla principal con los datos del usuario
+     * @param {Object} user - Datos del usuario logueado
+     */
     function showMainSection(user) {
+        // Mostrar nombre de usuario
         document.getElementById('loggedUserName').textContent = user.userName;
+        // Mostrar rol con primera letra mayúscula
         document.getElementById('userRoleDisplay').textContent = user.rol.charAt(0).toUpperCase() + user.rol.slice(1);
 
         const taskListTitle = document.querySelector('#tasksListContainer h3');
        
+        // Cambiar título según rol (admin ve todas, normal ve solo sus tareas)
         if (global.AuthManager.isAdmin()) {
             taskListTitle.textContent = 'Todas las Tareas';
         } else {
             taskListTitle.textContent = 'Mis Tareas';
         }
 
+        // Cambiar de pantalla
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('mainSection').style.display = 'block';
 
+        // Pintar las tareas
         renderTasks();
 
+        // Mostrar sección de administración solo si es admin
         const adminSection = document.getElementById('adminUserSection');
-
         if(adminSection){
             if (global.AuthManager.isAdmin()){
                 adminSection.style.display = 'block';
-                renderUsersList();
+                renderUsersList();  // Mostrar lista de usuarios
             }else{
                 adminSection.style.display = 'none';
             }
         }
-        
-        
     }
 
+    // ============================================
+    // RENDERIZADO DE TAREAS
+    // ============================================
+
+    /** Pinta todas las tareas en la pantalla según el rol del usuario */
     function renderTasks() {
         const tasksContainer = document.getElementById('tasksList');
         const currentUser = global.AuthManager.getCurrentUser();
         let tasksToRender = [];
 
+        // Filtrar tareas según rol (admin ve todas, normal ve solo las suyas)
         if (global.AuthManager.isAdmin()) {
             tasksToRender = global.DBManager.getTasks();
         } else {
@@ -53,22 +79,25 @@
             return;
         }
 
+        // Crear elemento HTML para cada tarea
         tasksToRender.forEach(task => {
             const taskElement = document.createElement('div');
             taskElement.className = 'task-item';
 
+            // Verificar si la tarea está vencida
             const today = new Date();
             const dueDate = new Date(task.fechaVencimiento);
             const isOverdue = task.estado === 'Pendiente' && dueDate < today;
 
             if (isOverdue) {
-                taskElement.classList.add('vencida');
+                taskElement.classList.add('vencida');  // Clase CSS para tareas vencidas
             }
 
             if (task.estado === 'Completada') {
-                taskElement.classList.add('completada');
+                taskElement.classList.add('completada');  // Clase CSS para tareas completadas
             }
 
+            // Para admin: mostrar a qué usuario está asignada la tarea
             let assignedUserText = '';
             if (global.AuthManager.isAdmin()) {
                 const assignedUser = global.DBManager.getUsers().find(u => u.id === task.idUsuario);
@@ -78,6 +107,7 @@
             const formattedCreationDate = new Date(task.fechaCreacion).toLocaleDateString();
             const formattedDueDate = new Date(task.fechaVencimiento).toLocaleDateString();
 
+            // Estructura HTML de cada tarea
             taskElement.innerHTML = `
                 <div class="task-content">
                     <div class="task-title">${task.titulo}</div>
@@ -89,6 +119,7 @@
                 </div>
             `;
 
+            // Asignar eventos a los botones
             const completeBtn = taskElement.querySelector('.btn-complete');
             const deleteBtn = taskElement.querySelector('.btn-delete');
 
@@ -110,7 +141,12 @@
         });
     }
 
-        function renderUsersList() {
+    // ============================================
+    // RENDERIZADO DE USUARIOS (SOLO ADMIN)
+    // ============================================
+
+    /** Muestra la lista de todos los usuarios (solo visible para administradores) */
+    function renderUsersList() {
         const usersListDiv = document.getElementById('usersList');
         if (!usersListDiv) return;
         
@@ -129,7 +165,7 @@
                     <strong>${user.userName}</strong> 
                     (${user.rol === 'administrador' ? ' Admin' : ' Usuario'})
                 </span>
-                ${user.id !== currentUser.id ? `<button class="btn-delete-user" data-user-id="${user.id}" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer;">🗑️ Eliminar</button>` : '<span style="color: gray;">(Tú)</span>'}
+                ${user.id !== currentUser.id ? `<button class="btn-delete-user" data-user-id="${user.id}" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer;"> Eliminar</button>` : '<span style="color: gray;">(Tú)</span>'}
             `;
             
             const deleteBtn = userElement.querySelector('.btn-delete-user');
@@ -144,14 +180,15 @@
         });
     }
 
-        function deleteUserById(userId) {
+    /** Elimina un usuario después de confirmación (solo admin) */
+    function deleteUserById(userId) {
         showCustomConfirmAlert(
             "¿Estás seguro de eliminar este usuario? Se borrarán TODAS sus tareas.",
             function() {
                 const result = global.DBManager.deleteUser(userId);
                 if (result) {
-                    renderUsersList();
-                    renderTasks();
+                    renderUsersList();   // Actualizar lista de usuarios
+                    renderTasks();       // Actualizar tareas (por si se borraron algunas)
                     showCustomAlert(" Usuario eliminado correctamente", "success");
                 } else {
                     showCustomAlert(" No se pudo eliminar el usuario", "error");
@@ -160,7 +197,11 @@
         );
     }
 
+    // ============================================
+    // ACCIONES SOBRE TAREAS
+    // ============================================
 
+    /** Cambia el estado de una tarea (Pendiente <-> Completada) */
     function toggleTaskStatus(taskId) {
         const tasks = global.DBManager.getTasks();
         const task = tasks.find(t => t.id === taskId); 
@@ -168,12 +209,13 @@
             const newStatus = task.estado === 'Pendiente' ? 'Completada' : 'Pendiente';
             global.DBManager.updateTask(taskId, { estado: newStatus });
             console.log(`Estado de la tarea ${taskId} actualizado a: ${newStatus}`);
-            renderTasks();
+            renderTasks();  // Refrescar pantalla
         } else {
             console.error(`No se encontró la tarea con ID ${taskId} para cambiar estado.`);
         }
     }
 
+    /** Elimina una tarea después de confirmación */
     function deleteTask(taskId) {
         showCustomConfirmAlert(
             "¿Estás seguro de que deseas eliminar esta tarea?",
@@ -189,6 +231,11 @@
         );
     }
 
+    // ============================================
+    // ALERTAS PERSONALIZADAS
+    // ============================================
+
+    /** Muestra una alerta de confirmación con botones Sí/No */
     function showCustomConfirmAlert(message, onConfirm, onCancel) {
         const existingAlert = document.querySelector('.custom-alert');
         if (existingAlert) {
@@ -222,6 +269,7 @@
         });
     }
 
+    /** Muestra una alerta temporal que desaparece automáticamente */
     function showCustomAlert(message, type = 'info', duration = 3000) {
         const existingAlert = document.querySelector('.custom-alert');
         if (existingAlert) {
@@ -239,6 +287,7 @@
         }, duration);
     }
 
+    /** Cierra y elimina una alerta con animación */
     function closeAlert(alertElement) {
         alertElement.style.animation = 'slideOut 0.3s ease-out';
         setTimeout(() => {
@@ -248,11 +297,21 @@
         }, 300);
     }
 
+    // ============================================
+    // UTILIDADES
+    // ============================================
+
+    /** Limpia los campos del formulario de nueva tarea */
     function clearNewTaskForm() {
         document.getElementById('taskTitleInput').value = '';
         document.getElementById('taskDueDateInput').value = '';
     }
 
+    // ============================================
+    // EXPORTACIÓN DEL MÓDULO
+    // ============================================
+
+    /** Exponer funciones al objeto global UIManager */
     global.UIManager = {
         showLoginSection,
         showMainSection,

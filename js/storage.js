@@ -1,7 +1,23 @@
+/**
+ * MÓDULO DE ALMACENAMIENTO (storage.js)
+ * 
+ * Simula una base de datos usando localStorage del navegador.
+ * Maneja toda la persistencia de usuarios y tareas.
+ * Proporciona funciones CRUD (Crear, Leer, Actualizar, Eliminar).
+ */
 
 (function(global) {
+    // Clave para guardar los datos en localStorage
     const DB_KEY = 'GestorTareasDB';
 
+    // ============================================
+    // INICIALIZACIÓN
+    // ============================================
+
+    /**
+     * Inicializa la base de datos con datos de ejemplo
+     * Solo se ejecuta si no hay datos guardados previamente
+     */
     function initializeDatabase() {
         if (!localStorage.getItem(DB_KEY)) {
             
@@ -26,25 +42,38 @@
         }
     }
 
+    // ============================================
+    // FUNCIONES BASE (Lectura y Escritura)
+    // ============================================
+
+    /** Lee toda la base de datos desde localStorage y la convierte en objeto */
     function readDatabase() {
         const storedData = localStorage.getItem(DB_KEY);
         return storedData ? JSON.parse(storedData) : { usuarios: [], tareas: [] };
     }
 
+    /** Guarda toda la base de datos en localStorage (convierte objeto a texto) */
     function writeDatabase(data) { 
         localStorage.setItem(DB_KEY, JSON.stringify(data));
     }
 
+    // ============================================
+    // FUNCIONES PARA USUARIOS
+    // ============================================
+
+    /** Obtiene la lista de todos los usuarios */
     function getUsers() {
         const db = readDatabase();
         return db.usuarios;
     }
 
+    /** Busca un usuario por su nombre de usuario */
     function getUserByUsername(username) { 
         const users = getUsers();
         return users.find(user => user.userName === username); 
     }
 
+    /** Agrega un nuevo usuario. Retorna true si se creó, false si ya existe */
     function addUser(newUser) {
         const db = readDatabase();
         if (db.usuarios.some(user => user.userName === newUser.userName)) { 
@@ -57,6 +86,7 @@
         return true;
     }
 
+    /** Elimina un usuario y todas sus tareas asociadas */
     function deleteUser(userId){
         const db = readDatabase();
 
@@ -64,24 +94,29 @@
         if(!userExist) return false;
 
         db.usuarios = db.usuarios.filter(u=> u.id !== userId);
-
         db.tareas = db.tareas.filter(t=> t.idUsuario !== userId);
 
         writeDatabase(db);
         return true;
     }
 
+    // ============================================
+    // FUNCIONES PARA TAREAS
+    // ============================================
+
+    /** Obtiene la lista de todas las tareas */
     function getTasks() {
         const db = readDatabase();
         return db.tareas;
     }
 
+    /** Filtra tareas por ID del usuario asignado */
     function getTasksByUserId(userId) {
         const tasks = getTasks();
         return tasks.filter(task => task.idUsuario === userId); 
     }
 
-   
+    /** Agrega una nueva tarea con ID autoincremental */
     function addTask(newTask) {
         const db = readDatabase();
         const newId = db.tareas.length > 0 ? Math.max(...db.tareas.map(t => t.id)) + 1 : 1;
@@ -90,6 +125,7 @@
         writeDatabase(db);
     }
 
+    /** Actualiza campos específicos de una tarea existente */
     function updateTask(taskId, updatedFields) {
         const db = readDatabase(); 
         const taskIndex = db.tareas.findIndex(task => task.id === taskId); 
@@ -102,6 +138,7 @@
         }
     }
 
+    /** Elimina una tarea por su ID */
     function deleteTask(taskId) {
         const db = readDatabase();
         const initialLength = db.tareas.length;
@@ -115,9 +152,13 @@
         }
     }
 
+    // ============================================
+    // INICIALIZACIÓN Y EXPORTACIÓN
+    // ============================================
   
     initializeDatabase();
 
+    // Exponer funciones al objeto global DBManager
     global.DBManager = {
         getUsers,
         getUserByUsername,
