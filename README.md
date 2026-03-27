@@ -24,15 +24,4 @@ Aplicación web para gestión de tareas con sistema de autenticación y roles (A
 - **JavaScript Vanilla** - Lógica de la aplicación, manipulación del DOM y localStorage
 - **SQL** - Script de base de datos relacional (MySQL)
 
-## 📁 Estructura del Proyecto
-Gestor-Tareas/
-├── index.html # Página principal
-├── css/
-│ └── styles.css # Estilos y diseño responsive
-├── js/
-│ ├── storage.js # Módulo de persistencia (localStorage)
-│ ├── auth.js # Módulo de autenticación y roles
-│ ├── dom.js # Módulo de interfaz de usuario
-│ └── main.js # Módulo principal (coordinación)
-├── sql/
-   └── database.sql # Script SQL con estructura y consultas
+
