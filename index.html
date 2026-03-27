@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas</title>
+</head>
+
+<body>
+    <main id="appContainer">
+
+
+        <section id="loginSection">
+            <h1>Iniciar Sesión</h1>
+            <form id="loginForm">
+                <label for="usernameInput">Usuario</label>
+                <input type="text" id="usernameInput" placeholder="Usuario" required>
+
+                <label for="passwordInput">Contraseña</label>
+                <input type="password" id="passwordInput" placeholder="Contraseña" required>
+
+                <button type="submit">Entrar</button>
+            </form>
+        </section>
+
+        <section id="mainSection" style="display: none;">
+            <header>
+                <h2>Bienvenidos, <span id="loggedUserName"></span></h2>
+                <button id="logoutButton">Cerrar Sesión</button>
+            </header>
+
+            <div id="roleIndicator">Rol: <span id="userRoleDisplay"></span></div>
+
+            <form id="taskForm">
+                <h3>Agregar Nueva Tarea</h3>
+
+                <label for="taskTitleInput">Título</label>
+                <input type="text" id="taskTitleInput" placeholder="Título de la tarea...." required name="taskTitle">
+
+                <label for="taskDueDateInput">Fecha de Vencimiento</label>
+                <input type="date" id="taskDueDateInput" name="taskDueDate" required>
+
+                <button type="submit">Agregar Tarea</button>
+            </form>
+
+            <div id="tasksListContainer">
+                <h3>Mis Tareas</h3>
+                <div id="tasksList"></div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- 1. Módulo para manejar la capa de datos (simulación de DB con localStorage) -->
+    <script src="js/storage.js"></script>
+    <!-- 2. Módulo para manejar la autenticación y roles -->
+    <script src="js/auth.js"></script>
+    <!-- 3. Módulo para manejar la Interfaz (DOM) -->
+    <script src="js/dom.js"></script>
+    <!-- 4. Archivo principal que coordina los módulos -->
+    <script src="js/main.js"></script>
+</body>
+
+</html>
